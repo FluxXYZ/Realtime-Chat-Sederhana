@@ -41,6 +41,24 @@ body {
   gap: 20px;
 }
 
+.input-email {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-password {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-semua {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
 .auth-form h2 {
   text-align: center;
   color: #333;
@@ -80,6 +98,7 @@ body {
 }
 
 .auth-form button {
+  margin-top: 6px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
