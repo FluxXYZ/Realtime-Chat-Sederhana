@@ -40,21 +40,16 @@ async function isUsernameExists(username) {
 form.addEventListener('submit', async function (event) {
   event.preventDefault();
 
-  const username = document.getElementById('username').value.trim();
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   const confirmPassword = document.getElementById('confirmPassword').value;
 
   // Validation
-  if (!username || !email || !password || !confirmPassword) {
+  if ( !email || !password || !confirmPassword) {
     alert("Semua field harus diisi!");
     return;
   }
 
-  if (username.length < 3) {
-    alert("Username minimal 3 karakter!");
-    return;
-  }
 
   if (password !== confirmPassword) {
     alert("Password dan konfirmasi password tidak cocok!");
@@ -66,20 +61,7 @@ form.addEventListener('submit', async function (event) {
     return;
   }
 
-  // Check if username contains only valid characters
-  const usernameRegex = /^[a-zA-Z0-9_]+$/;
-  if (!usernameRegex.test(username)) {
-    alert("Username hanya boleh berisi huruf, angka, dan underscore!");
-    return;
-  }
-
   try {
-    // Check if username already exists
-    if (await isUsernameExists(username)) {
-      alert("Username sudah digunakan! Pilih username lain.");
-      return;
-    }
-
     // Create user account
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;

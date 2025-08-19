@@ -33,12 +33,11 @@ const form = document.getElementById('loginForm');
 form.addEventListener('submit', async function (event) {
   event.preventDefault();
 
-  const username = document.getElementById('username').value.trim();
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
 
   // Validation
-  if (!username || !email || !password) {
+  if ( !email || !password) {
     alert("Semua field harus diisi!");
     return;
   }
@@ -47,23 +46,6 @@ form.addEventListener('submit', async function (event) {
     // Sign in with email and password
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-
-    // Get user data from Firestore to verify username
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      if (userData.username !== username) {
-        alert("Username tidak cocok dengan akun ini!");
-        await auth.signOut();
-        return;
-      }
-      // Store username in localStorage for later use
-      localStorage.setItem('username', userData.username);
-    } else {
-      // If no user document exists, use the provided username
-      localStorage.setItem('username', username);
-    }
 
     alert("Berhasil masuk!");
     window.location.href = "index.html";
