@@ -30,12 +30,6 @@ onAuthStateChanged(auth, (user) => {
 const submit = document.getElementById('submit');
 const form = document.getElementById('registerForm');
 
-// Check if username already exists
-async function isUsernameExists(username) {
-  const q = query(collection(db, "users"), where("username", "==", username));
-  const querySnapshot = await getDocs(q);
-  return !querySnapshot.empty;
-}
 
 form.addEventListener('submit', async function (event) {
   event.preventDefault();
@@ -68,7 +62,6 @@ form.addEventListener('submit', async function (event) {
 
     // Save user data to Firestore
     await setDoc(doc(db, "users", user.uid), {
-      username: username,
       email: email,
       createdAt: new Date(),
       uid: user.uid
