@@ -6,55 +6,156 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h2>Realtime Chat</h2>
+  <div class="header">
+    <h2>Realtime Chat</h2>
+    <div class="user-info" id="userInfo">
+      <span id="username"></span>
+      <button onclick="logout()" class="logout-btn">Log Out</button>
+    </div>
+  </div>
+  
   <div id="chat"></div>
-  <input id="message" placeholder="Ketik pesan..." />
-  <button onclick="sendMessage()">Kirim</button>
+  <div class="input-container">
+    <input id="message" placeholder="Ketik pesan..." disabled />
+    <button onclick="sendMessage()" id="sendBtn" disabled>Kirim</button>
+  </div>
 
-  <script>
-    const socket = new WebSocket("ws://localhost:8080");
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyAD9PuaSWK6-rK1B0VKIrY1dgQsK6CevNk",
+      authDomain: "website-mapel-digital.firebaseapp.com",
+      projectId: "website-mapel-digital",
+      storageBucket: "website-mapel-digital.firebasestorage.app",
+      messagingSenderId: "237511903481",
+      appId: "1:237511903481:web:50105212d92efdfc6aba28",
+      measurementId: "G-TTZQ3NTRZ9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    let socket;
+    let currentUser = null;
     const chat = document.getElementById("chat");
     const input = document.getElementById("message");
+    const sendBtn = document.getElementById("sendBtn");
+    const usernameSpan = document.getElementById("username");
+
+    // Check authentication state
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        // Get username from localStorage or use email
+        const username = localStorage.getItem('username') || user.email.split('@')[0];
+        usernameSpan.textContent = `Halo, ${username}!`;
+        
+        // Enable chat functionality
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.placeholder = "Ketik pesan...";
+        
+        // Initialize WebSocket connection
+        initWebSocket();
+      } else {
+        // Redirect to login if not authenticated
+        window.location.href = "login.html";
+      }
+    });
+
+    function initWebSocket() {
+      socket = new WebSocket("ws://localhost:8080");
+      
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "init") {
+          chat.innerHTML = "";
+          data.messages.forEach(renderMessage);
+        }
+
+        if (data.type === "chat") {
+          renderMessage(data.message);
+        }
+
+        if (data.type === "delete") {
+          const el = document.getElementById("msg-" + data.id);
+          if (el) el.remove();
+        }
+      };
+
+      socket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        alert('Gagal terhubung ke server chat');
+      };
+    }
 
     function renderMessage(msg) {
       const div = document.createElement("div");
       div.className = "msg";
       div.id = "msg-" + msg.id;
-      div.innerHTML = `<span>${msg.text}</span> <button onclick="deleteMessage(${msg.id})">Hapus</button>`;
+      
+      const isOwnMessage = msg.username === (localStorage.getItem('username') || currentUser.email.split('@')[0]);
+      
+      div.innerHTML = `
+        <div class="message-content">
+          <strong>${msg.username}:</strong> ${msg.text}
+        </div>
+        ${isOwnMessage ? `<button onclick="deleteMessage(${msg.id})" class="delete-btn">Hapus</button>` : ''}
+      `;
+      
+      if (isOwnMessage) {
+        div.classList.add('own-message');
+      }
+      
       chat.appendChild(div);
       chat.scrollTop = chat.scrollHeight;
     }
 
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-
-      if (data.type === "init") {
-        chat.innerHTML = "";
-        data.messages.forEach(renderMessage);
+    window.sendMessage = function() {
+      if (!currentUser) {
+        alert('Anda harus login terlebih dahulu!');
+        return;
       }
-
-      if (data.type === "chat") {
-        renderMessage(data.message);
-      }
-
-      if (data.type === "delete") {
-        const el = document.getElementById("msg-" + data.id);
-        if (el) el.remove();
-      }
-    };
-
-    function sendMessage() {
+      
       const text = input.value.trim();
       if (!text) return alert("Pesan tidak boleh kosong!");
-      socket.send(JSON.stringify({ type: "chat", text }));
+      
+      const username = localStorage.getItem('username') || currentUser.email.split('@')[0];
+      
+      socket.send(JSON.stringify({ 
+        type: "chat", 
+        text: text,
+        username: username 
+      }));
+      
       console.log("Pesan terkirim:", text);
       input.value = "";
-      
     }
 
-    function deleteMessage(id) {
+    window.deleteMessage = function(id) {
+      if (!currentUser) return;
       socket.send(JSON.stringify({ type: "delete", id }));
     }
+
+    window.logout = function() {
+      signOut(auth).then(() => {
+        localStorage.removeItem('username');
+        window.location.href = "login.html";
+      }).catch((error) => {
+        console.error('Error signing out:', error);
+        alert('Gagal logout');
+      });
+    }
+
+    // Allow sending message with Enter key
+    input.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
   </script>
 </body>
 </html>

@@ -4,21 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register Page</title>
+  <link rel="stylesheet" href="auth.css">
   <script type="module" src="register.js" defer></script>
 </head>
 <body>
-<form class="registerForm">
-  <h2>Sign Up</h2>
-  <label for="email">Email</label>
-  <br>
-  <input type="email" placeholder="Enter email" id="email" required>
-  <br>
-  <label for="password">Password</label>
-  <br>
-  <input type="password" placeholder="Enter password" id="password" required>
-  <br>
-  <button type="submit" id="submit">Register</button>
-</form>
-
+  <div class="auth-container">
+    <form class="auth-form" id="registerForm">
+      <h2>Sign Up</h2>
+      
+      <label for="username">Username</label>
+      <input type="text" placeholder="Enter username" id="username" required>
+      
+      <label for="email">Email</label>
+      <input type="email" placeholder="Enter email" id="email" required>
+      
+      <label for="password">Password</label>
+      <input type="password" placeholder="Enter password (min 6 characters)" id="password" required minlength="6">
+      
+      <label for="confirmPassword">Confirm Password</label>
+      <input type="password" placeholder="Confirm password" id="confirmPassword" required>
+      
+      <button type="submit" id="submit">Register</button>
+      
+      <div class="auth-switch">
+        <p>Sudah punya akun? <a href="login.html">Login di sini</a></p>
+      </div>
+    </form>
+  </div>
 </body>
 </html>

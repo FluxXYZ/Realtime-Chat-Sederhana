@@ -14,8 +14,15 @@ server.on("connection", (ws) => {
     const msg = JSON.parse(data);
 
     if (msg.type === "chat") {
-      const newMsg = { id: Date.now(), user: msg.user, text: msg.text };
+      const newMsg = { 
+        id: Date.now(), 
+        username: msg.username || 'Anonymous', 
+        text: msg.text,
+        timestamp: new Date().toISOString()
+      };
       messages.push(newMsg);
+
+      console.log(`Message from ${newMsg.username}: ${newMsg.text}`);
 
       // broadcast ke semua client
       server.clients.forEach((client) => {
@@ -26,20 +33,43 @@ server.on("connection", (ws) => {
     }
 
     if (msg.type === "delete") {
-      messages = messages.filter((m) => m.id !== msg.id);
+      const messageIndex = messages.findIndex(m => m.id === msg.id);
+      if (messageIndex !== -1) {
+        const deletedMessage = messages[messageIndex];
+        messages = messages.filter((m) => m.id !== msg.id);
+        
+        console.log(`Message deleted by ${deletedMessage.username}: ${deletedMessage.text}`);
 
-      // broadcast pesan terhapus
-      server.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({ type: "delete", id: msg.id }));
-        }
-      });
+        // broadcast pesan terhapus
+        server.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: "delete", id: msg.id }));
+          }
+        });
+      }
     }
   });
 
   ws.on("close", () => {
     console.log("Client disconnected");
   });
+
+  ws.on("error", (error) => {
+    console.error("WebSocket error:", error);
+  });
+});
+
+server.on("error", (error) => {
+  console.error("Server error:", error);
 });
 
 console.log("WebSocket server running on ws://localhost:8080");
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\nShutting down server...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
