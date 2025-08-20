@@ -53,10 +53,10 @@
     // Monitor authentication state
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        console.log("User logged in:", username);
+        console.log("User logged in:", user.email);
         currentUser = user;
         const username = user.email.split('@')[0];
-        usernameSpan.textContent = `Halo, ${username}!`;
+        userEmailSpan.textContent = `Halo, ${usename}!`;
         
         // Enable chat functionality
         input.disabled = false;
