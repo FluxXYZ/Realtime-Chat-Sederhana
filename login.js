@@ -6,8 +6,6 @@ import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12
 const firebaseConfig = {
   apiKey: "AIzaSyAD9PuaSWK6-rK1B0VKIrY1dgQsK6CevNk",
   authDomain: "website-mapel-digital.firebaseapp.com",
-  // PENTING: Tambahkan databaseURL untuk Realtime Database
-  databaseURL: "https://website-mapel-digital-default-rtdb.firebaseio.com", // Ganti dengan URL database Anda
   projectId: "website-mapel-digital",
   storageBucket: "website-mapel-digital.firebasestorage.app",
   messagingSenderId: "237511903481",
