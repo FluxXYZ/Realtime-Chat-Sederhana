@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Realtime Chat</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div class="header">
     <h2>Realtime Chat</h2>
@@ -13,7 +15,7 @@
       <button onclick="logout()" class="logout-btn">Log Out</button>
     </div>
   </div>
-  
+
   <div id="chat"></div>
   <div class="input-container">
     <input id="message" placeholder="Ketik pesan..." disabled />
@@ -26,17 +28,16 @@
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
     // TAMBAHAN: Import Realtime Database (menggantikan WebSocket!)
     import { getDatabase, ref, push, onValue, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
-    
+
     const firebaseConfig = {
-      apiKey: "AIzaSyAD9PuaSWK6-rK1B0VKIrY1dgQsK6CevNk",
-      authDomain: "website-mapel-digital.firebaseapp.com",
-      // PENTING: Tambahkan databaseURL untuk Realtime Database
-      databaseURL: "https://website-mapel-digital-default-rtdb.firebaseio.com", // Ganti dengan URL database Anda
-      projectId: "website-mapel-digital",
-      storageBucket: "website-mapel-digital.firebasestorage.app",
-      messagingSenderId: "237511903481",
-      appId: "1:237511903481:web:50105212d92efdfc6aba28",
-      measurementId: "G-TTZQ3NTRZ9"
+      apiKey: process.env.FIREBASE_APIKEY,
+      authDomain: process.env.FIREBASE_AUTHDOMAIN,
+      databaseURL: process.env.FIREBASE_DATABASEURL,
+      projectId: process.env.FIREBASE_PROJECTID,
+      storageBucket: process.env.FIREBASE_STORAGEBUCKET,
+      messagingSenderId: process.env.FIREBASE_MESSAGINGSENDERID,
+      appId: process.env.FIREBASE_APPID,
+      measurementId: process.env.FIREBASE_MEASUREMENTID,
     };
 
     const app = initializeApp(firebaseConfig);
@@ -58,12 +59,12 @@
         console.log("User logged in username:", username);
         currentUser = user;
         userEmailSpan.textContent = `Halo, ${username}!`;
-        
+
         // Enable chat functionality
         input.disabled = false;
         sendBtn.disabled = false;
         input.placeholder = "Ketik pesan...";
-        
+
         // PERUBAHAN: Initialize Firebase Realtime listener (menggantikan WebSocket)
         initRealtimeListener();
       } else {
@@ -76,23 +77,23 @@
     function initRealtimeListener() {
       // Reference ke 'messages' collection di Firebase Realtime Database
       const messagesRef = ref(database, 'messages');
-      
+
       // MAGIC: onValue otomatis listen perubahan real-time!
       // Ini menggantikan socket.onmessage
       onValue(messagesRef, (snapshot) => {
         const data = snapshot.val();
         console.log("Messages updated from Firebase:", data);
-        
+
         // Clear chat dan render ulang semua messages
         chat.innerHTML = "";
-        
+
         if (data) {
           // Convert object ke array dan sort berdasarkan timestamp
           const messagesArray = Object.keys(data).map(key => ({
             id: key,
             ...data[key]
           })).sort((a, b) => a.timestamp - b.timestamp);
-          
+
           // Render setiap message
           messagesArray.forEach(renderMessage);
         }
@@ -107,15 +108,15 @@
       const div = document.createElement("div");
       div.className = "msg";
       div.id = "msg-" + msg.id;
-      
+
       const isOwnMessage = msg.userEmail === currentUser.email;
-      
+
       // Format timestamp untuk display
       const timestamp = new Date(msg.timestamp).toLocaleTimeString('id-ID', {
         hour: '2-digit',
         minute: '2-digit'
       });
-      
+
       div.innerHTML = `
         <div class="message-content">
           <div class="message-header">
@@ -126,29 +127,29 @@
         </div>
         ${isOwnMessage ? `<button onclick="deleteMessage('${msg.id}')" class="delete-btn">Hapus</button>` : ''}
       `;
-      
+
       if (isOwnMessage) {
         div.classList.add('own-message');
       }
-      
+
       chat.appendChild(div);
       chat.scrollTop = chat.scrollHeight;
     }
 
     // PERUBAHAN: Send message menggunakan Firebase push (menggantikan WebSocket)
-    window.sendMessage = async function() {
+    window.sendMessage = async function () {
       if (!currentUser) {
         alert('Anda harus login terlebih dahulu!');
         return;
       }
-      
+
       const text = input.value.trim();
       if (!text) return alert("Pesan tidak boleh kosong!");
-      
+
       try {
         // Reference ke messages collection
         const messagesRef = ref(database, 'messages');
-        
+
         // MAGIC: push() otomatis generate unique ID dan broadcast ke semua client!
         await push(messagesRef, {
           userEmail: currentUser.email,
@@ -156,10 +157,10 @@
           timestamp: Date.now(), // Gunakan client timestamp untuk konsistensi
           uid: currentUser.uid    // Tambahan: simpan user ID untuk security
         });
-        
+
         console.log("Pesan terkirim ke Firebase:", text);
         input.value = "";
-        
+
       } catch (error) {
         console.error('Error sending message:', error);
         alert('Gagal mengirim pesan. Coba lagi.');
@@ -167,18 +168,18 @@
     }
 
     // PERUBAHAN: Delete message menggunakan Firebase remove (menggantikan WebSocket)
-    window.deleteMessage = async function(messageId) {
+    window.deleteMessage = async function (messageId) {
       if (!currentUser) return;
-      
+
       try {
         // Reference ke specific message
         const messageRef = ref(database, `messages/${messageId}`);
-        
+
         // MAGIC: remove() otomatis broadcast ke semua client!
         await remove(messageRef);
-        
+
         console.log("Pesan dihapus:", messageId);
-        
+
       } catch (error) {
         console.error('Error deleting message:', error);
         alert('Gagal menghapus pesan. Coba lagi.');
@@ -186,7 +187,7 @@
     }
 
     // Logout function (sama seperti sebelumnya)
-    window.logout = function() {
+    window.logout = function () {
       signOut(auth).then(() => {
         console.log("User logged out");
         window.location.href = "login.html";
@@ -197,11 +198,12 @@
     }
 
     // Enter key listener
-    input.addEventListener('keypress', function(e) {
+    input.addEventListener('keypress', function (e) {
       if (e.key === 'Enter') {
         sendMessage();
       }
     });
   </script>
 </body>
+
 </html>
