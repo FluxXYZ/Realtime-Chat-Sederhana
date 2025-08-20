@@ -6,37 +6,32 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- TAMBAHAN: Header baru yang menampilkan info user dan tombol logout -->
   <div class="header">
     <h2>Realtime Chat</h2>
     <div class="user-info" id="userInfo">
-      <!-- Span untuk menampilkan nama username yang sedang login -->
-      <span id="username"></span>
-      <!-- Tombol logout untuk keluar dari aplikasi -->
+      <span id="userEmail"></span>
       <button onclick="logout()" class="logout-btn">Log Out</button>
     </div>
   </div>
   
   <div id="chat"></div>
-  <!-- PERUBAHAN: Input dan button dibungkus dalam container untuk styling yang lebih baik -->
   <div class="input-container">
-    <!-- PERUBAHAN: Input disabled secara default, hanya aktif setelah user login -->
     <input id="message" placeholder="Ketik pesan..." disabled />
-    <!-- PERUBAHAN: Button disabled secara default, hanya aktif setelah user login -->
     <button onclick="sendMessage()" id="sendBtn" disabled>Kirim</button>
   </div>
 
   <script type="module">
-    // TAMBAHAN: Import Firebase modules untuk autentikasi
+    // PERUBAHAN: Import Firebase modules + Realtime Database
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-    // onAuthStateChanged: untuk mendeteksi perubahan status login user
-    // signOut: untuk logout user
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    // TAMBAHAN: Import Realtime Database (menggantikan WebSocket!)
+    import { getDatabase, ref, push, onValue, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
     
-    // Konfigurasi Firebase (sama seperti sebelumnya)
     const firebaseConfig = {
       apiKey: "AIzaSyAD9PuaSWK6-rK1B0VKIrY1dgQsK6CevNk",
       authDomain: "website-mapel-digital.firebaseapp.com",
+      // PENTING: Tambahkan databaseURL untuk Realtime Database
+      databaseURL: "https://website-mapel-digital-default-rtdb.asia-southeast1.firebasedatabase.app/", // Ganti dengan URL database Anda
       projectId: "website-mapel-digital",
       storageBucket: "website-mapel-digital.firebasestorage.app",
       messagingSenderId: "237511903481",
@@ -44,108 +39,102 @@
       measurementId: "G-TTZQ3NTRZ9"
     };
 
-    // Inisialisasi Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const database = getDatabase(app); // TAMBAHAN: Initialize Realtime Database
 
-    // TAMBAHAN: Variabel untuk menyimpan WebSocket connection dan user yang sedang login
-    let socket;
+    // HAPUS: Tidak butuh WebSocket variables lagi
     let currentUser = null;
-    // Ambil elemen-elemen DOM yang akan digunakan
     const chat = document.getElementById("chat");
     const input = document.getElementById("message");
     const sendBtn = document.getElementById("sendBtn");
-    const usernameSpan = document.getElementById("username");
+    const userEmailSpan = document.getElementById("userEmail");
 
-    // TAMBAHAN: Fungsi untuk memonitor status autentikasi user
-    // onAuthStateChanged dipanggil setiap kali status login user berubah
+    // Monitor authentication state
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // Jika user sudah login
         console.log("User logged in:", user.email);
         currentUser = user;
+        userEmailSpan.textContent = `Halo, ${user.email}!`;
         
-        // Ambil username dari localStorage, jika tidak ada gunakan email tanpa domain
-        const username = localStorage.getItem('username') || user.email.split('@')[0];
-        usernameSpan.textContent = `Halo, ${username}!`;
-        
-        // AKTIVASI CHAT: Enable input dan button setelah user login
+        // Enable chat functionality
         input.disabled = false;
         sendBtn.disabled = false;
         input.placeholder = "Ketik pesan...";
         
-        // Inisialisasi koneksi WebSocket setelah user login
-        initWebSocket();
+        // PERUBAHAN: Initialize Firebase Realtime listener (menggantikan WebSocket)
+        initRealtimeListener();
       } else {
-        // Jika user belum login, redirect ke halaman login
         console.log("User not logged in, redirecting to login");
         window.location.href = "login.html";
       }
     });
 
-    // TAMBAHAN: Fungsi untuk menginisialisasi koneksi WebSocket
-    function initWebSocket() {
-      socket = new WebSocket("ws://localhost:8080");
+    // TAMBAHAN: Fungsi untuk listen real-time changes dari Firebase
+    function initRealtimeListener() {
+      // Reference ke 'messages' collection di Firebase Realtime Database
+      const messagesRef = ref(database, 'messages');
       
-      // Handle pesan yang diterima dari server
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-
-        // Ketika client baru connect, server kirim semua pesan lama
-        if (data.type === "init") {
-          chat.innerHTML = "";
-          data.messages.forEach(renderMessage);
+      // MAGIC: onValue otomatis listen perubahan real-time!
+      // Ini menggantikan socket.onmessage
+      onValue(messagesRef, (snapshot) => {
+        const data = snapshot.val();
+        console.log("Messages updated from Firebase:", data);
+        
+        // Clear chat dan render ulang semua messages
+        chat.innerHTML = "";
+        
+        if (data) {
+          // Convert object ke array dan sort berdasarkan timestamp
+          const messagesArray = Object.keys(data).map(key => ({
+            id: key,
+            ...data[key]
+          })).sort((a, b) => a.timestamp - b.timestamp);
+          
+          // Render setiap message
+          messagesArray.forEach(renderMessage);
         }
-
-        // Ketika ada pesan baru dari user lain
-        if (data.type === "chat") {
-          renderMessage(data.message);
-        }
-
-        // Ketika ada pesan yang dihapus
-        if (data.type === "delete") {
-          const el = document.getElementById("msg-" + data.id);
-          if (el) el.remove();
-        }
-      };
-
-      // Handle error koneksi WebSocket
-      socket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        alert('Gagal terhubung ke server chat');
-      };
+      }, (error) => {
+        console.error("Firebase listener error:", error);
+        alert('Gagal terhubung ke database');
+      });
     }
 
-    // PERUBAHAN: Fungsi render pesan dengan tambahan username dan tombol hapus conditional
+    // Fungsi render message (sama seperti sebelumnya)
     function renderMessage(msg) {
       const div = document.createElement("div");
       div.className = "msg";
       div.id = "msg-" + msg.id;
       
-      // TAMBAHAN: Cek apakah pesan ini milik user yang sedang login
-      const isOwnMessage = msg.username === (localStorage.getItem('username') || currentUser.email.split('@')[0]);
+      const isOwnMessage = msg.userEmail === currentUser.email;
       
-      // PERUBAHAN: Template HTML yang menampilkan username dan pesan
-      // Tombol hapus hanya muncul untuk pesan milik sendiri
+      // Format timestamp untuk display
+      const timestamp = new Date(msg.timestamp).toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
       div.innerHTML = `
         <div class="message-content">
-          <strong>${msg.username}:</strong> ${msg.text}
+          <div class="message-header">
+            <strong>${msg.userEmail}</strong>
+            <span class="timestamp">${timestamp}</span>
+          </div>
+          <div class="message-text">${msg.text}</div>
         </div>
-        ${isOwnMessage ? `<button onclick="deleteMessage(${msg.id})" class="delete-btn">Hapus</button>` : ''}
+        ${isOwnMessage ? `<button onclick="deleteMessage('${msg.id}')" class="delete-btn">Hapus</button>` : ''}
       `;
       
-      // TAMBAHAN: Styling khusus untuk pesan milik sendiri
       if (isOwnMessage) {
         div.classList.add('own-message');
       }
       
       chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight; // Auto-scroll ke pesan terbaru
+      chat.scrollTop = chat.scrollHeight;
     }
 
-    // PERUBAHAN: Fungsi kirim pesan dengan validasi login dan username
-    window.sendMessage = function() {
-      // TAMBAHAN: Cek apakah user sudah login
+    // PERUBAHAN: Send message menggunakan Firebase push (menggantikan WebSocket)
+    window.sendMessage = async function() {
       if (!currentUser) {
         alert('Anda harus login terlebih dahulu!');
         return;
@@ -154,33 +143,50 @@
       const text = input.value.trim();
       if (!text) return alert("Pesan tidak boleh kosong!");
       
-      // TAMBAHAN: Ambil username dari localStorage atau gunakan email
-      const username = localStorage.getItem('username') || currentUser.email.split('@')[0];
-      
-      // PERUBAHAN: Kirim pesan dengan username
-      socket.send(JSON.stringify({ 
-        type: "chat", 
-        text: text,
-        username: username  // TAMBAHAN: Include username dalam pesan
-      }));
-      
-      console.log("Pesan terkirim:", text);
-      input.value = "";
+      try {
+        // Reference ke messages collection
+        const messagesRef = ref(database, 'messages');
+        
+        // MAGIC: push() otomatis generate unique ID dan broadcast ke semua client!
+        await push(messagesRef, {
+          userEmail: currentUser.email,
+          text: text,
+          timestamp: Date.now(), // Gunakan client timestamp untuk konsistensi
+          uid: currentUser.uid    // Tambahan: simpan user ID untuk security
+        });
+        
+        console.log("Pesan terkirim ke Firebase:", text);
+        input.value = "";
+        
+      } catch (error) {
+        console.error('Error sending message:', error);
+        alert('Gagal mengirim pesan. Coba lagi.');
+      }
     }
 
-    // PERUBAHAN: Fungsi hapus pesan dengan validasi login
-    window.deleteMessage = function(id) {
-      if (!currentUser) return; // Hanya user yang login bisa hapus pesan
-      socket.send(JSON.stringify({ type: "delete", id }));
+    // PERUBAHAN: Delete message menggunakan Firebase remove (menggantikan WebSocket)
+    window.deleteMessage = async function(messageId) {
+      if (!currentUser) return;
+      
+      try {
+        // Reference ke specific message
+        const messageRef = ref(database, `messages/${messageId}`);
+        
+        // MAGIC: remove() otomatis broadcast ke semua client!
+        await remove(messageRef);
+        
+        console.log("Pesan dihapus:", messageId);
+        
+      } catch (error) {
+        console.error('Error deleting message:', error);
+        alert('Gagal menghapus pesan. Coba lagi.');
+      }
     }
 
-    // TAMBAHAN: Fungsi logout menggunakan Firebase Auth
+    // Logout function (sama seperti sebelumnya)
     window.logout = function() {
       signOut(auth).then(() => {
-        // Hapus username dari localStorage
-        localStorage.removeItem('username');
         console.log("User logged out");
-        // Redirect ke halaman login
         window.location.href = "login.html";
       }).catch((error) => {
         console.error('Error signing out:', error);
@@ -188,7 +194,7 @@
       });
     }
 
-    // TAMBAHAN: Event listener untuk mengirim pesan dengan tombol Enter
+    // Enter key listener
     input.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         sendMessage();

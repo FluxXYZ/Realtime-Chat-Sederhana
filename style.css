@@ -96,9 +96,34 @@ body {
   word-wrap: break-word;
 }
 
-.message-content strong {
+/* TAMBAHAN: Styling untuk header message dengan timestamp */
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.message-header strong {
   color: #2c3e50;
-  margin-right: 8px;
+  font-size: 14px;
+}
+
+/* TAMBAHAN: Styling untuk timestamp */
+.timestamp {
+  font-size: 11px;
+  color: #666;
+  font-weight: normal;
+  background: rgba(0,0,0,0.05);
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+/* TAMBAHAN: Styling untuk teks message */
+.message-text {
+  word-wrap: break-word;
+  line-height: 1.4;
+  color: #333;
 }
 
 .delete-btn {
@@ -170,6 +195,18 @@ button {
   transform: none;
 }
 
+/* TAMBAHAN: Error message styling */
+.error-msg {
+  text-align: center;
+  color: #dc3545;
+  font-style: italic;
+  padding: 20px;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
 /* Scrollbar styling */
 #chat::-webkit-scrollbar {
   width: 6px;
@@ -213,5 +250,16 @@ button {
   input, button {
     width: 100%;
     border-radius: 5px;
+  }
+  
+  /* Mobile responsive untuk message header */
+  .message-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  
+  .timestamp {
+    font-size: 10px;
   }
 }
