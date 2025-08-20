@@ -22,6 +22,25 @@
     <button onclick="sendMessage()" id="sendBtn" disabled>Kirim</button>
   </div>
 
+  <script>
+    async function initFirebase() {
+      try {
+        // Ambil config dari serverless function
+        const res = await fetch('/api/firebase-config');
+        const firebaseConfig = await res.json();
+
+        // Inisialisasi Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        document.getElementById("status").textContent = "Firebase Loaded ✅";
+      } catch (err) {
+        document.getElementById("status").textContent = "Error: " + err.message;
+        console.error(err);
+      }
+    }
+
+    initFirebase();
+  </script>
+  
   <script type="module">
     // PERUBAHAN: Import Firebase modules + Realtime Database
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
