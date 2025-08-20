@@ -53,7 +53,7 @@
     // Monitor authentication state
     onAuthStateChanged(auth, (user) => {
       if (user) {
-                currentUser = user;
+        currentUser = user;
         const username = user.email.split('@')[0];
         console.log("User logged in email:", user.email);
         console.log("User logged in username:", username);

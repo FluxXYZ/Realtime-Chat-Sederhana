@@ -4,14 +4,15 @@ import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged } from "htt
 import { getFirestore, doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_APIKEY,
-  authDomain: process.env.FIREBASE_AUTHDOMAIN,
-  databaseURL: process.env.FIREBASE_DATABASEURL,
-  projectId: process.env.FIREBASE_PROJECTID,
-  storageBucket: process.env.FIREBASE_STORAGEBUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGINGSENDERID,
-  appId: process.env.FIREBASE_APPID,
-  measurementId: process.env.FIREBASE_MEASUREMENTID,
+  apiKey: "AIzaSyAD9PuaSWK6-rK1B0VKIrY1dgQsK6CevNk",
+  authDomain: "website-mapel-digital.firebaseapp.com",
+  // PENTING: Tambahkan databaseURL untuk Realtime Database
+  databaseURL: "https://website-mapel-digital-default-rtdb.firebaseio.com", // Ganti dengan URL database Anda
+  projectId: "website-mapel-digital",
+  storageBucket: "website-mapel-digital.firebasestorage.app",
+  messagingSenderId: "237511903481",
+  appId: "1:237511903481:web:50105212d92efdfc6aba28",
+  measurementId: "G-TTZQ3NTRZ9"
 };
 
 // Initialize Firebase
