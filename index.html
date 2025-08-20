@@ -49,13 +49,13 @@
     const input = document.getElementById("message");
     const sendBtn = document.getElementById("sendBtn");
     const userEmailSpan = document.getElementById("userEmail");
-    const username = user.email.split('@')[0];
 
     // Monitor authentication state
     onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log("User logged in:", username);
         currentUser = user;
+        const username = user.email.split('@')[0];
         usernameSpan.textContent = `Halo, ${username}!`;
         
         // Enable chat functionality
