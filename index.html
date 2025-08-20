@@ -108,7 +108,7 @@
       div.className = "msg";
       div.id = "msg-" + msg.id;
       
-      const isOwnMessage = msg.userEmail === currentUser.email.split('@')[0];
+      const isOwnMessage = msg.username === currentUser.email.split('@')[0];
       
       // Format timestamp untuk display
       const timestamp = new Date(msg.timestamp).toLocaleTimeString('id-ID', {
@@ -119,7 +119,7 @@
       div.innerHTML = `
         <div class="message-content">
           <div class="message-header">
-            <strong>${msg.userEmail}</strong>
+            <strong>${msg.username}</strong>
             <span class="timestamp">${timestamp}</span>
           </div>
           <div class="message-text">${msg.text}</div>
@@ -152,6 +152,7 @@
         // MAGIC: push() otomatis generate unique ID dan broadcast ke semua client!
         await push(messagesRef, {
           userEmail: currentUser.email,
+          username: currentUser.email.split('@')[0],
           text: text,
           timestamp: Date.now(), // Gunakan client timestamp untuk konsistensi
           uid: currentUser.uid    // Tambahan: simpan user ID untuk security
