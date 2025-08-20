@@ -108,7 +108,7 @@
       div.className = "msg";
       div.id = "msg-" + msg.id;
       
-      const isOwnMessage = msg.username === currentUser.email.split('@')[0];
+      const isOwnMessage = msg.username === currentUser.email;
       
       // Format timestamp untuk display
       const timestamp = new Date(msg.timestamp).toLocaleTimeString('id-ID', {
@@ -116,10 +116,12 @@
         minute: '2-digit'
       });
       
+      const username = msg.userEmail.split('@')[0];
+
       div.innerHTML = `
         <div class="message-content">
           <div class="message-header">
-            <strong>${msg.username}</strong>
+            <strong>${username}</strong>
             <span class="timestamp">${timestamp}</span>
           </div>
           <div class="message-text">${msg.text}</div>
