@@ -4,13 +4,14 @@ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https:/
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAD9PuaSWK6-rK1B0VKIrY1dgQsK6CevNk",
-  authDomain: "website-mapel-digital.firebaseapp.com",
-  projectId: "website-mapel-digital",
-  storageBucket: "website-mapel-digital.firebasestorage.app",
-  messagingSenderId: "237511903481",
-  appId: "1:237511903481:web:50105212d92efdfc6aba28",
-  measurementId: "G-TTZQ3NTRZ9"
+  apiKey: process.env.FIREBASE_APIKEY,
+  authDomain: process.env.FIREBASE_AUTHDOMAIN,
+  databaseURL: process.env.FIREBASE_DATABASEURL,
+  projectId: process.env.FIREBASE_PROJECTID,
+  storageBucket: process.env.FIREBASE_STORAGEBUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGINGSENDERID,
+  appId: process.env.FIREBASE_APPID,
+  measurementId: process.env.FIREBASE_MEASUREMENTID,
 };
 
 // Initialize Firebase
@@ -37,7 +38,7 @@ form.addEventListener('submit', async function (event) {
   const password = document.getElementById('password').value;
 
   // Validation
-  if ( !email || !password) {
+  if (!email || !password) {
     alert("Semua field harus diisi!");
     return;
   }
@@ -49,11 +50,11 @@ form.addEventListener('submit', async function (event) {
 
     alert("Berhasil masuk!");
     window.location.href = "index.html";
-    
+
   } catch (error) {
     const errorCode = error.code;
     let errorMessage = "Gagal masuk! ";
-    
+
     switch (errorCode) {
       case 'auth/user-not-found':
         errorMessage += "Email tidak terdaftar.";
@@ -73,7 +74,7 @@ form.addEventListener('submit', async function (event) {
       default:
         errorMessage += error.message;
     }
-    
+
     alert(errorMessage);
     console.error("Login error:", error);
   }

@@ -21,8 +21,8 @@
     <input id="message" placeholder="Ketik pesan..." disabled />
     <button onclick="sendMessage()" id="sendBtn" disabled>Kirim</button>
   </div>
-
-  <script>
+  
+  <script type="module">
     async function initFirebase() {
       try {
         // Ambil config dari serverless function
@@ -39,9 +39,7 @@
     }
 
     initFirebase();
-  </script>
-  
-  <script type="module">
+
     // PERUBAHAN: Import Firebase modules + Realtime Database
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
