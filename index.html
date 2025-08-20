@@ -108,7 +108,7 @@
       div.className = "msg";
       div.id = "msg-" + msg.id;
       
-      const isOwnMessage = msg.username === currentUser.email;
+      const isOwnMessage = msg.userEmail === currentUser.email;
       
       // Format timestamp untuk display
       const timestamp = new Date(msg.timestamp).toLocaleTimeString('id-ID', {
