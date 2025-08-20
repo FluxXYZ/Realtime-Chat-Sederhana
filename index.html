@@ -41,8 +41,9 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const database = getDatabase(app);
+    const database = getDatabase(app); // TAMBAHAN: Initialize Realtime Database
 
+    // HAPUS: Tidak butuh WebSocket variables lagi
     let currentUser = null;
     const chat = document.getElementById("chat");
     const input = document.getElementById("message");
@@ -115,8 +116,7 @@
         minute: '2-digit'
       });
 
-      currentUser = user;
-      const username = user.email.split('@')[0];
+      const username = msg.userEmail.split('@')[0];
       
       div.innerHTML = `
         <div class="message-content">
