@@ -31,7 +31,7 @@
       apiKey: "AIzaSyAD9PuaSWK6-rK1B0VKIrY1dgQsK6CevNk",
       authDomain: "website-mapel-digital.firebaseapp.com",
       // PENTING: Tambahkan databaseURL untuk Realtime Database
-      databaseURL: "https://website-mapel-digital-default-rtdb.asia-southeast1.firebasedatabase.app/", // Ganti dengan URL database Anda
+      databaseURL: "https://website-mapel-digital-default-rtdb.firebaseio.com", // Ganti dengan URL database Anda
       projectId: "website-mapel-digital",
       storageBucket: "website-mapel-digital.firebasestorage.app",
       messagingSenderId: "237511903481",
@@ -49,13 +49,14 @@
     const input = document.getElementById("message");
     const sendBtn = document.getElementById("sendBtn");
     const userEmailSpan = document.getElementById("userEmail");
+    const username = user.email.split('@')[0];
 
     // Monitor authentication state
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        console.log("User logged in:", user.email);
+        console.log("User logged in:", username);
         currentUser = user;
-        userEmailSpan.textContent = `Halo, ${user.email}!`;
+        usernameSpan.textContent = `Halo, ${username}!`;
         
         // Enable chat functionality
         input.disabled = false;
